@@ -68,8 +68,8 @@ const Index = () => {
 
   const admins = [
     { name: 'Pancake', rank: 'Старший администратор', badge: 'bg-red-600' },
-    { name: 'Cj', rank: 'Младший администратор', badge: 'bg-yellow-600' },
     { name: 'gotnevl', rank: 'Администратор', badge: 'bg-orange-600' },
+    { name: 'Cj', rank: 'Младший администратор', badge: 'bg-yellow-600' },
   ];
 
   if (!isLoggedIn) {
@@ -211,12 +211,7 @@ const Index = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="p-4 bg-primary/10 rounded-lg text-center">
-                        <Icon name="Users" size={32} className="mx-auto mb-2 text-primary" />
-                        <div className="text-2xl font-bold">500+</div>
-                        <div className="text-sm text-muted-foreground">Игроков</div>
-                      </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="p-4 bg-secondary/10 rounded-lg text-center">
                         <Icon name="Shield" size={32} className="mx-auto mb-2 text-secondary" />
                         <div className="text-2xl font-bold">13</div>
@@ -225,7 +220,7 @@ const Index = () => {
                       <div className="p-4 bg-accent/10 rounded-lg text-center">
                         <Icon name="Star" size={32} className="mx-auto mb-2 text-accent" />
                         <div className="text-2xl font-bold">24/7</div>
-                        <div className="text-sm text-muted-foreground">Онлайн</div>
+                        <div className="text-sm text-muted-foreground">Работаем</div>
                       </div>
                     </div>
                     <Separator />
@@ -592,14 +587,6 @@ const Index = () => {
                       <h3 className="font-semibold">Информация о Discord</h3>
                       <div className="space-y-2">
                         <div className="flex justify-between p-3 bg-muted rounded-lg">
-                          <span>Участников</span>
-                          <span className="font-semibold">523</span>
-                        </div>
-                        <div className="flex justify-between p-3 bg-muted rounded-lg">
-                          <span>Онлайн</span>
-                          <span className="font-semibold text-green-500">142</span>
-                        </div>
-                        <div className="flex justify-between p-3 bg-muted rounded-lg">
                           <span>Каналов</span>
                           <span className="font-semibold">28</span>
                         </div>
@@ -608,10 +595,6 @@ const Index = () => {
                     <div className="space-y-4">
                       <h3 className="font-semibold">Игровая статистика</h3>
                       <div className="space-y-2">
-                        <div className="flex justify-between p-3 bg-muted rounded-lg">
-                          <span>Онлайн игроков</span>
-                          <span className="font-semibold text-green-500">47</span>
-                        </div>
                         <div className="flex justify-between p-3 bg-muted rounded-lg">
                           <span>Активных фракций</span>
                           <span className="font-semibold">13</span>
