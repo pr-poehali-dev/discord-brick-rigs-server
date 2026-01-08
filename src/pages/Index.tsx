@@ -16,6 +16,10 @@ const Index = () => {
   const [password, setPassword] = useState('');
   const [currentUser, setCurrentUser] = useState({ username: '', role: '' });
   const [activeSection, setActiveSection] = useState('home');
+  const [rules, setRules] = useState<string[]>([]);
+  const [newRule, setNewRule] = useState('');
+  const [editingRuleIndex, setEditingRuleIndex] = useState<number | null>(null);
+  const [editRuleText, setEditRuleText] = useState('');
 
   const handleLogin = () => {
     if (username === 'TOURIST_WAGNERA' && password === 'wagnera_tut$45$') {
@@ -269,21 +273,107 @@ const Index = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {[
-                    'Уважайте других игроков и администрацию',
-                    'Запрещено использование читов и эксплойтов',
-                    'Соблюдайте ролевую составляющую игры',
-                    'Не занимайтесь гриферством и вредительством',
-                    'Следуйте указаниям администрации',
-                    'Запрещена реклама других серверов',
-                    'Используйте адекватные никнеймы',
-                    'Не спамьте в чате',
-                  ].map((rule, index) => (
-                    <div key={index} className="flex items-start space-x-3 p-3 bg-muted/50 rounded-lg">
-                      <Badge variant="outline" className="mt-0.5">{index + 1}</Badge>
-                      <p>{rule}</p>
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Введите новое правило"
+                        value={newRule}
+                        onChange={(e) => setNewRule(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && newRule.trim()) {
+                            setRules([...rules, newRule.trim()]);
+                            setNewRule('');
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={() => {
+                          if (newRule.trim()) {
+                            setRules([...rules, newRule.trim()]);
+                            setNewRule('');
+                          }
+                        }}
+                      >
+                        <Icon name="Plus" size={18} />
+                      </Button>
                     </div>
-                  ))}
+                  </div>
+
+                  {rules.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Icon name="FileText" size={48} className="mx-auto mb-3 opacity-50" />
+                      <p>Правила пока не добавлены</p>
+                      <p className="text-sm">Добавьте первое правило выше</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {rules.map((rule, index) => (
+                        <div key={index} className="flex items-start space-x-3 p-3 bg-muted/50 rounded-lg group">
+                          <Badge variant="outline" className="mt-0.5">{index + 1}</Badge>
+                          {editingRuleIndex === index ? (
+                            <div className="flex-1 flex gap-2">
+                              <Input
+                                value={editRuleText}
+                                onChange={(e) => setEditRuleText(e.target.value)}
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    const newRules = [...rules];
+                                    newRules[index] = editRuleText;
+                                    setRules(newRules);
+                                    setEditingRuleIndex(null);
+                                  }
+                                }}
+                                autoFocus
+                              />
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  const newRules = [...rules];
+                                  newRules[index] = editRuleText;
+                                  setRules(newRules);
+                                  setEditingRuleIndex(null);
+                                }}
+                              >
+                                <Icon name="Check" size={16} />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setEditingRuleIndex(null)}
+                              >
+                                <Icon name="X" size={16} />
+                              </Button>
+                            </div>
+                          ) : (
+                            <>
+                              <p className="flex-1">{rule}</p>
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setEditingRuleIndex(index);
+                                    setEditRuleText(rule);
+                                  }}
+                                >
+                                  <Icon name="Pencil" size={16} />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setRules(rules.filter((_, i) => i !== index));
+                                  }}
+                                >
+                                  <Icon name="Trash2" size={16} />
+                                </Button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
