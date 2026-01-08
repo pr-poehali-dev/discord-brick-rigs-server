@@ -30,11 +30,21 @@ const Index = () => {
   const [adminCodeInput, setAdminCodeInput] = useState('');
   const [newAdmin, setNewAdmin] = useState({ name: '', rank: 'Администратор' });
   const [editingAdminIndex, setEditingAdminIndex] = useState<number | null>(null);
+  const [showOwnerPanel, setShowOwnerPanel] = useState(false);
+  const [newAdminCode, setNewAdminCode] = useState('');
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [banUsername, setBanUsername] = useState('');
+  const [muteUsername, setMuteUsername] = useState('');
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [profileData, setProfileData] = useState({ username: '', status: '', email: '' });
+  const isOwner = currentUser.username === 'TOURIST_WAGNERA';
+  const isAdmin = admins.some(admin => admin.name === currentUser.username) || isOwner;
 
   const handleLogin = () => {
     if (username === 'TOURIST_WAGNERA' && password === 'wagnera_tut$45$') {
       setIsLoggedIn(true);
       setCurrentUser({ username: 'TOURIST_WAGNERA', role: 'owner' });
+      setProfileData({ username: 'TOURIST_WAGNERA', status: 'Владелец сервера', email: '' });
       toast({
         title: 'Вход выполнен',
         description: 'Добро пожаловать на сервер Russian Town!',
@@ -84,10 +94,10 @@ const Index = () => {
   };
 
   const handleAddAdmin = () => {
-    if (adminCodeInput !== adminCode) {
+    if (!isOwner) {
       toast({
         title: 'Ошибка',
-        description: 'Неверный админ-код',
+        description: 'Только владелец может управлять администраторами',
         variant: 'destructive',
       });
       return;
@@ -95,8 +105,7 @@ const Index = () => {
     if (newAdmin.name.trim()) {
       setAdmins([...admins, { ...newAdmin, badge: getRankBadge(newAdmin.rank) }]);
       setNewAdmin({ name: '', rank: 'Администратор' });
-      setShowAdminModal(false);
-      setAdminCodeInput('');
+      setShowOwnerPanel(false);
       toast({
         title: 'Успешно',
         description: 'Администратор добавлен',
@@ -105,17 +114,16 @@ const Index = () => {
   };
 
   const handleDeleteAdmin = (index: number) => {
-    if (adminCodeInput !== adminCode) {
+    if (!isOwner) {
       toast({
         title: 'Ошибка',
-        description: 'Неверный админ-код',
+        description: 'Только владелец может управлять администраторами',
         variant: 'destructive',
       });
       return;
     }
     setAdmins(admins.filter((_, i) => i !== index));
-    setShowAdminModal(false);
-    setAdminCodeInput('');
+    setShowOwnerPanel(false);
     toast({
       title: 'Удалено',
       description: 'Администратор удален',
@@ -123,10 +131,10 @@ const Index = () => {
   };
 
   const handleEditAdmin = (index: number) => {
-    if (adminCodeInput !== adminCode) {
+    if (!isOwner) {
       toast({
         title: 'Ошибка',
-        description: 'Неверный админ-код',
+        description: 'Только владелец может управлять администраторами',
         variant: 'destructive',
       });
       return;
@@ -136,12 +144,69 @@ const Index = () => {
     setAdmins(updatedAdmins);
     setEditingAdminIndex(null);
     setNewAdmin({ name: '', rank: 'Администратор' });
-    setShowAdminModal(false);
-    setAdminCodeInput('');
+    setShowOwnerPanel(false);
     toast({
       title: 'Обновлено',
       description: 'Данные администратора изменены',
     });
+  };
+
+  const handleChangeAdminCode = () => {
+    if (newAdminCode.trim()) {
+      setAdminCode(newAdminCode);
+      setNewAdminCode('');
+      toast({
+        title: 'Успешно',
+        description: `Новый админ-код: ${newAdminCode}`,
+      });
+    }
+  };
+
+  const handleBanUser = () => {
+    if (adminCodeInput !== adminCode) {
+      toast({
+        title: 'Ошибка',
+        description: 'Неверный админ-код',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (banUsername.trim()) {
+      toast({
+        title: 'Успешно',
+        description: `Пользователь ${banUsername} забанен`,
+      });
+      setBanUsername('');
+      setAdminCodeInput('');
+    }
+  };
+
+  const handleMuteUser = () => {
+    if (adminCodeInput !== adminCode) {
+      toast({
+        title: 'Ошибка',
+        description: 'Неверный админ-код',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (muteUsername.trim()) {
+      toast({
+        title: 'Успешно',
+        description: `Пользователю ${muteUsername} выдан мут`,
+      });
+      setMuteUsername('');
+      setAdminCodeInput('');
+    }
+  };
+
+  const handleSaveProfile = () => {
+    setCurrentUser({ ...currentUser, username: profileData.username });
+    toast({
+      title: 'Успешно',
+      description: 'Профиль обновлен',
+    });
+    setShowProfileEdit(false);
   };
 
   if (!isLoggedIn) {
@@ -222,10 +287,34 @@ const Index = () => {
               <h1 className="text-2xl font-bold">Russian Town</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <Badge variant="outline" className="px-3 py-1">
+              <Badge 
+                variant="outline" 
+                className="px-3 py-1 cursor-pointer hover:bg-accent"
+                onClick={() => setShowProfileEdit(true)}
+              >
                 <Icon name="User" size={14} className="mr-1" />
                 {currentUser.username}
               </Badge>
+              {isOwner && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowOwnerPanel(true)}
+                >
+                  <Icon name="Crown" size={18} className="mr-2" />
+                  Owner Panel
+                </Button>
+              )}
+              {isAdmin && !isOwner && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAdminPanel(true)}
+                >
+                  <Icon name="ShieldCheck" size={18} className="mr-2" />
+                  Admin Panel
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -691,18 +780,6 @@ const Index = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Button
-                    className="w-full"
-                    onClick={() => {
-                      setShowAdminModal(true);
-                      setEditingAdminIndex(null);
-                      setNewAdmin({ name: '', rank: 'Администратор' });
-                    }}
-                  >
-                    <Icon name="UserPlus" size={18} className="mr-2" />
-                    Добавить администратора
-                  </Button>
-
                   <div className="space-y-3">
                     {admins.map((admin, index) => (
                       <div key={index} className="flex items-center justify-between p-4 bg-muted rounded-lg group">
@@ -717,115 +794,263 @@ const Index = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge className={admin.badge}>{admin.rank}</Badge>
-                          {currentUser.username === 'TOURIST_WAGNERA' && (
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => {
-                                  setEditingAdminIndex(index);
-                                  setNewAdmin({ name: admin.name, rank: admin.rank });
-                                  setShowAdminModal(true);
-                                }}
-                              >
-                                <Icon name="Pencil" size={16} />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => {
-                                  setEditingAdminIndex(index);
-                                  setShowAdminModal(true);
-                                }}
-                              >
-                                <Icon name="Trash2" size={16} />
-                              </Button>
-                            </div>
-                          )}
+
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  {showAdminModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                      <Card className="w-full max-w-md">
-                        <CardHeader>
-                          <CardTitle>
-                            {editingAdminIndex !== null && newAdmin.name ? 'Редактировать администратора' : editingAdminIndex !== null ? 'Удалить администратора' : 'Добавить администратора'}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          {editingAdminIndex === null || newAdmin.name ? (
-                            <>
-                              <div className="space-y-2">
-                                <Label>Никнейм</Label>
-                                <Input
-                                  value={newAdmin.name}
-                                  onChange={(e) => setNewAdmin({ ...newAdmin, name: e.target.value })}
-                                  placeholder="Введите никнейм"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Ранг</Label>
-                                <select
-                                  className="w-full px-3 py-2 bg-background border border-input rounded-md"
-                                  value={newAdmin.rank}
-                                  onChange={(e) => setNewAdmin({ ...newAdmin, rank: e.target.value })}
-                                >
-                                  <option value="Старший администратор">Старший администратор</option>
-                                  <option value="Администратор">Администратор</option>
-                                  <option value="Младший администратор">Младший администратор</option>
-                                </select>
-                              </div>
-                            </>
-                          ) : null}
-                          <div className="space-y-2">
-                            <Label>Админ-код</Label>
-                            <Input
-                              type="password"
-                              value={adminCodeInput}
-                              onChange={(e) => setAdminCodeInput(e.target.value)}
-                              placeholder="Введите админ-код"
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              className="flex-1"
-                              onClick={() => {
-                                if (editingAdminIndex !== null && !newAdmin.name) {
-                                  handleDeleteAdmin(editingAdminIndex);
-                                } else if (editingAdminIndex !== null) {
-                                  handleEditAdmin(editingAdminIndex);
-                                } else {
-                                  handleAddAdmin();
-                                }
-                              }}
-                            >
-                              {editingAdminIndex !== null && !newAdmin.name ? 'Удалить' : editingAdminIndex !== null ? 'Сохранить' : 'Добавить'}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                setShowAdminModal(false);
-                                setAdminCodeInput('');
-                                setEditingAdminIndex(null);
-                                setNewAdmin({ name: '', rank: 'Администратор' });
-                              }}
-                            >
-                              Отмена
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             )}
           </main>
         </div>
       </div>
+
+      {showOwnerPanel && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-auto">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Icon name="Crown" size={24} className="mr-2 text-yellow-500" />
+                Owner Panel
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Управление администраторами</h3>
+                <div className="space-y-3">
+                  {admins.map((admin, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-8 h-8 ${admin.badge} rounded-full flex items-center justify-center`}>
+                          <Icon name="Shield" size={16} className="text-white" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-sm">{admin.name}</div>
+                          <div className="text-xs text-muted-foreground">{admin.rank}</div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingAdminIndex(index);
+                            setNewAdmin({ name: admin.name, rank: admin.rank });
+                          }}
+                        >
+                          <Icon name="Pencil" size={14} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteAdmin(index)}
+                        >
+                          <Icon name="Trash2" size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-4 border border-dashed rounded-lg space-y-3">
+                  <h4 className="font-semibold text-sm">Добавить / Изменить администратора</h4>
+                  <div className="space-y-2">
+                    <Label>Никнейм</Label>
+                    <Input
+                      value={newAdmin.name}
+                      onChange={(e) => setNewAdmin({ ...newAdmin, name: e.target.value })}
+                      placeholder="Введите никнейм"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Ранг</Label>
+                    <select
+                      className="w-full px-3 py-2 bg-background border border-input rounded-md"
+                      value={newAdmin.rank}
+                      onChange={(e) => setNewAdmin({ ...newAdmin, rank: e.target.value })}
+                    >
+                      <option value="Старший администратор">Старший администратор</option>
+                      <option value="Администратор">Администратор</option>
+                      <option value="Младший администратор">Младший администратор</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      className="flex-1"
+                      onClick={() => {
+                        if (editingAdminIndex !== null) {
+                          handleEditAdmin(editingAdminIndex);
+                        } else {
+                          handleAddAdmin();
+                        }
+                      }}
+                    >
+                      {editingAdminIndex !== null ? 'Сохранить изменения' : 'Добавить администратора'}
+                    </Button>
+                    {editingAdminIndex !== null && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setEditingAdminIndex(null);
+                          setNewAdmin({ name: '', rank: 'Администратор' });
+                        }}
+                      >
+                        Отмена
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Изменить админ-код</h3>
+                <div className="space-y-2">
+                  <Label>Текущий код: {adminCode}</Label>
+                  <Input
+                    type="password"
+                    value={newAdminCode}
+                    onChange={(e) => setNewAdminCode(e.target.value)}
+                    placeholder="Введите новый админ-код"
+                  />
+                </div>
+                <Button onClick={handleChangeAdminCode} className="w-full">
+                  <Icon name="Key" size={18} className="mr-2" />
+                  Изменить код
+                </Button>
+              </div>
+
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => {
+                  setShowOwnerPanel(false);
+                  setEditingAdminIndex(null);
+                  setNewAdmin({ name: '', rank: 'Администратор' });
+                }}>
+                  Закрыть
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {showAdminPanel && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Icon name="ShieldCheck" size={24} className="mr-2" />
+                Admin Panel
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="font-semibold">Забанить пользователя</h3>
+                <div className="space-y-2">
+                  <Label>Никнейм</Label>
+                  <Input
+                    value={banUsername}
+                    onChange={(e) => setBanUsername(e.target.value)}
+                    placeholder="Введите никнейм"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Админ-код</Label>
+                  <Input
+                    type="password"
+                    value={adminCodeInput}
+                    onChange={(e) => setAdminCodeInput(e.target.value)}
+                    placeholder="Введите админ-код"
+                  />
+                </div>
+                <Button onClick={handleBanUser} className="w-full" variant="destructive">
+                  <Icon name="Ban" size={18} className="mr-2" />
+                  Забанить
+                </Button>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <h3 className="font-semibold">Выдать мут</h3>
+                <div className="space-y-2">
+                  <Label>Никнейм</Label>
+                  <Input
+                    value={muteUsername}
+                    onChange={(e) => setMuteUsername(e.target.value)}
+                    placeholder="Введите никнейм"
+                  />
+                </div>
+                <Button onClick={handleMuteUser} className="w-full">
+                  <Icon name="Volume2" size={18} className="mr-2" />
+                  Выдать мут
+                </Button>
+              </div>
+
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => {
+                  setShowAdminPanel(false);
+                  setAdminCodeInput('');
+                  setBanUsername('');
+                  setMuteUsername('');
+                }}>
+                  Закрыть
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {showProfileEdit && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Icon name="User" size={24} className="mr-2" />
+                Редактировать профиль
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Никнейм</Label>
+                <Input
+                  value={profileData.username}
+                  onChange={(e) => setProfileData({ ...profileData, username: e.target.value })}
+                  placeholder="Ваш никнейм"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Статус</Label>
+                <Input
+                  value={profileData.status}
+                  onChange={(e) => setProfileData({ ...profileData, status: e.target.value })}
+                  placeholder="Ваш статус"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={profileData.email}
+                  onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                  placeholder="your@email.com"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveProfile} className="flex-1">
+                  Сохранить
+                </Button>
+                <Button variant="outline" onClick={() => setShowProfileEdit(false)}>
+                  Отмена
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
