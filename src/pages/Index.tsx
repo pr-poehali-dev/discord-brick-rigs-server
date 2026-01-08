@@ -20,6 +20,16 @@ const Index = () => {
   const [newRule, setNewRule] = useState('');
   const [editingRuleIndex, setEditingRuleIndex] = useState<number | null>(null);
   const [editRuleText, setEditRuleText] = useState('');
+  const [admins, setAdmins] = useState([
+    { name: 'Pancake', rank: 'Старший администратор', badge: 'bg-red-600' },
+    { name: 'gotnevl', rank: 'Администратор', badge: 'bg-orange-600' },
+    { name: 'Cj', rank: 'Младший администратор', badge: 'bg-yellow-600' },
+  ]);
+  const [adminCode, setAdminCode] = useState('99797');
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [adminCodeInput, setAdminCodeInput] = useState('');
+  const [newAdmin, setNewAdmin] = useState({ name: '', rank: 'Администратор' });
+  const [editingAdminIndex, setEditingAdminIndex] = useState<number | null>(null);
 
   const handleLogin = () => {
     if (username === 'TOURIST_WAGNERA' && password === 'wagnera_tut$45$') {
@@ -66,11 +76,73 @@ const Index = () => {
     { name: 'Pancake', faction: 'Армия', role: 'Генерал' },
   ];
 
-  const admins = [
-    { name: 'Pancake', rank: 'Старший администратор', badge: 'bg-red-600' },
-    { name: 'gotnevl', rank: 'Администратор', badge: 'bg-orange-600' },
-    { name: 'Cj', rank: 'Младший администратор', badge: 'bg-yellow-600' },
-  ];
+  const getRankBadge = (rank: string) => {
+    if (rank === 'Старший администратор') return 'bg-red-600';
+    if (rank === 'Администратор') return 'bg-orange-600';
+    if (rank === 'Младший администратор') return 'bg-yellow-600';
+    return 'bg-gray-600';
+  };
+
+  const handleAddAdmin = () => {
+    if (adminCodeInput !== adminCode) {
+      toast({
+        title: 'Ошибка',
+        description: 'Неверный админ-код',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (newAdmin.name.trim()) {
+      setAdmins([...admins, { ...newAdmin, badge: getRankBadge(newAdmin.rank) }]);
+      setNewAdmin({ name: '', rank: 'Администратор' });
+      setShowAdminModal(false);
+      setAdminCodeInput('');
+      toast({
+        title: 'Успешно',
+        description: 'Администратор добавлен',
+      });
+    }
+  };
+
+  const handleDeleteAdmin = (index: number) => {
+    if (adminCodeInput !== adminCode) {
+      toast({
+        title: 'Ошибка',
+        description: 'Неверный админ-код',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setAdmins(admins.filter((_, i) => i !== index));
+    setShowAdminModal(false);
+    setAdminCodeInput('');
+    toast({
+      title: 'Удалено',
+      description: 'Администратор удален',
+    });
+  };
+
+  const handleEditAdmin = (index: number) => {
+    if (adminCodeInput !== adminCode) {
+      toast({
+        title: 'Ошибка',
+        description: 'Неверный админ-код',
+        variant: 'destructive',
+      });
+      return;
+    }
+    const updatedAdmins = [...admins];
+    updatedAdmins[index] = { ...newAdmin, badge: getRankBadge(newAdmin.rank) };
+    setAdmins(updatedAdmins);
+    setEditingAdminIndex(null);
+    setNewAdmin({ name: '', rank: 'Администратор' });
+    setShowAdminModal(false);
+    setAdminCodeInput('');
+    toast({
+      title: 'Обновлено',
+      description: 'Данные администратора изменены',
+    });
+  };
 
   if (!isLoggedIn) {
     return (
@@ -618,10 +690,22 @@ const Index = () => {
                     Администрация сервера
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {admins.map((admin) => (
-                      <div key={admin.name} className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                <CardContent className="space-y-4">
+                  <Button
+                    className="w-full"
+                    onClick={() => {
+                      setShowAdminModal(true);
+                      setEditingAdminIndex(null);
+                      setNewAdmin({ name: '', rank: 'Администратор' });
+                    }}
+                  >
+                    <Icon name="UserPlus" size={18} className="mr-2" />
+                    Добавить администратора
+                  </Button>
+
+                  <div className="space-y-3">
+                    {admins.map((admin, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 bg-muted rounded-lg group">
                         <div className="flex items-center space-x-3">
                           <div className={`w-10 h-10 ${admin.badge} rounded-full flex items-center justify-center`}>
                             <Icon name="Shield" size={20} className="text-white" />
@@ -631,10 +715,111 @@ const Index = () => {
                             <div className="text-sm text-muted-foreground">{admin.rank}</div>
                           </div>
                         </div>
-                        <Badge className={admin.badge}>{admin.rank}</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge className={admin.badge}>{admin.rank}</Badge>
+                          {currentUser.username === 'TOURIST_WAGNERA' && (
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setEditingAdminIndex(index);
+                                  setNewAdmin({ name: admin.name, rank: admin.rank });
+                                  setShowAdminModal(true);
+                                }}
+                              >
+                                <Icon name="Pencil" size={16} />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setEditingAdminIndex(index);
+                                  setShowAdminModal(true);
+                                }}
+                              >
+                                <Icon name="Trash2" size={16} />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
+
+                  {showAdminModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                      <Card className="w-full max-w-md">
+                        <CardHeader>
+                          <CardTitle>
+                            {editingAdminIndex !== null && newAdmin.name ? 'Редактировать администратора' : editingAdminIndex !== null ? 'Удалить администратора' : 'Добавить администратора'}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {editingAdminIndex === null || newAdmin.name ? (
+                            <>
+                              <div className="space-y-2">
+                                <Label>Никнейм</Label>
+                                <Input
+                                  value={newAdmin.name}
+                                  onChange={(e) => setNewAdmin({ ...newAdmin, name: e.target.value })}
+                                  placeholder="Введите никнейм"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Ранг</Label>
+                                <select
+                                  className="w-full px-3 py-2 bg-background border border-input rounded-md"
+                                  value={newAdmin.rank}
+                                  onChange={(e) => setNewAdmin({ ...newAdmin, rank: e.target.value })}
+                                >
+                                  <option value="Старший администратор">Старший администратор</option>
+                                  <option value="Администратор">Администратор</option>
+                                  <option value="Младший администратор">Младший администратор</option>
+                                </select>
+                              </div>
+                            </>
+                          ) : null}
+                          <div className="space-y-2">
+                            <Label>Админ-код</Label>
+                            <Input
+                              type="password"
+                              value={adminCodeInput}
+                              onChange={(e) => setAdminCodeInput(e.target.value)}
+                              placeholder="Введите админ-код"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              className="flex-1"
+                              onClick={() => {
+                                if (editingAdminIndex !== null && !newAdmin.name) {
+                                  handleDeleteAdmin(editingAdminIndex);
+                                } else if (editingAdminIndex !== null) {
+                                  handleEditAdmin(editingAdminIndex);
+                                } else {
+                                  handleAddAdmin();
+                                }
+                              }}
+                            >
+                              {editingAdminIndex !== null && !newAdmin.name ? 'Удалить' : editingAdminIndex !== null ? 'Сохранить' : 'Добавить'}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setShowAdminModal(false);
+                                setAdminCodeInput('');
+                                setEditingAdminIndex(null);
+                                setNewAdmin({ name: '', rank: 'Администратор' });
+                              }}
+                            >
+                              Отмена
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
